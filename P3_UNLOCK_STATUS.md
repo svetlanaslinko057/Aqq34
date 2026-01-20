@@ -82,10 +82,9 @@ POST /api/engine/bootstrap/decisions
   - 24h — 8 decisions
 - ✅ Разные токены:
   - USDT, USDC, WETH, DAI, WBTC
-- ✅ Coverage сохраняется: `coverage.overall = 53`
+- ✅ **Coverage персистится в Decision model**, но variance зависит от runtime aggregation, а не от bootstrap contexts
 
-📌 **Важно:** NEUTRAL ≠ отсутствие variance.  
-Variance формируется на уровне features/coverage, а не decision enum.
+📌 **Важно:** NEUTRAL ≠ отсутствие variance. Variance формируется по распределению feature-space, а не по decision labels.
 
 ---
 
