@@ -105,6 +105,9 @@ import { engineRuntimeRoutes } from '../core/engine/engine_runtime.routes.js';
 // Token Universe (Stage B)
 import { tokenUniverseRoutes } from '../core/token_universe/token_universe.routes.js';
 
+// Ranking & Buckets (Stage D)
+import { rankingRoutes } from '../core/ranking/ranking.routes.js';
+
 // P2.5 - Token Symbol Resolution
 import { tokenRegistryRoutes } from '../core/resolver/token_registry.routes.js';
 
