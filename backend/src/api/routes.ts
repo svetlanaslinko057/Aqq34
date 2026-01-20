@@ -305,6 +305,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   
   // Token Universe (Stage B - Foundation for Final UX)
   await app.register(tokenUniverseRoutes, { prefix: '/api' });
+  
+  // Ranking & Buckets (Stage D)
+  await app.register(rankingRoutes, { prefix: '/api' });
 
   // ========== P2.5 - TOKEN SYMBOL RESOLUTION ==========
   
