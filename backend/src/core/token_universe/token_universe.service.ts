@@ -68,20 +68,21 @@ export async function ingestTokenUniverse(config: IngestConfig = DEFAULT_CONFIG)
 
 /**
  * Fetch tokens from CoinGecko API
+ * Using /coins/list with platform filtering
  */
 async function fetchCoinGeckoTokens() {
   const allTokens: any[] = [];
   
-  // Fetch multiple pages
+  // Fetch pages (max 250 per page)
   for (let page = 1; page <= 10; page++) {
+    // Using markets endpoint with include_platform=true
     const url = `https://api.coingecko.com/api/v3/coins/markets?` +
       `vs_currency=usd&` +
-      `category=ethereum-ecosystem&` +
       `order=market_cap_desc&` +
       `per_page=250&` +
       `page=${page}&` +
       `sparkline=false&` +
-      `locale=en`;
+      `price_change_percentage=24h`;
     
     try {
       const response = await fetch(url);
@@ -97,10 +98,33 @@ async function fetchCoinGeckoTokens() {
         break;
       }
       
-      allTokens.push(...data);
+      // For each token, fetch detailed info to get platforms
+      const enrichedTokens = [];
+      for (const token of data.slice(0, 25)) { // Limit to prevent rate limiting
+        try {
+          const detailUrl = `https://api.coingecko.com/api/v3/coins/${token.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`;
+          const detailResponse = await fetch(detailUrl);
+          
+          if (detailResponse.ok) {
+            const detail = await detailResponse.json();
+            enrichedTokens.push({
+              ...token,
+              platforms: detail.platforms || {},
+            });
+          }
+          
+          await sleep(300); // Rate limiting
+        } catch (err) {
+          console.error(`[CoinGecko] Failed to enrich ${token.id}`);
+        }
+      }
       
-      // Rate limiting
-      await sleep(1200); // CoinGecko free tier: ~50 calls/min
+      allTokens.push(...enrichedTokens);
+      
+      console.log(`[CoinGecko] Page ${page}: fetched ${enrichedTokens.length} tokens`);
+      
+      // Rate limiting between pages
+      await sleep(1500);
     } catch (err) {
       console.error(`[CoinGecko] Page ${page} failed:`, err);
       break;
