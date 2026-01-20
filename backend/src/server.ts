@@ -9,6 +9,8 @@ import * as bootstrapWorker from './core/bootstrap/bootstrap.worker.js';
 import { startTelegramPolling, stopTelegramPolling } from './telegram-polling.worker.js';
 import { seedTokenRegistry } from './core/resolver/token.resolver.js';
 import { ensureDefaultConfig } from './core/engine/engine_runtime_config.model.js';
+import { TokenUniverseModel } from './core/token_universe/token_universe.model.js';
+import { seedTokenUniverse } from './core/token_universe/token_universe.seed.js';
 
 async function main(): Promise<void> {
   console.log('[Server] Starting BlockView Backend...');
