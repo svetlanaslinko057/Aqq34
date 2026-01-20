@@ -1,0 +1,66 @@
+{
+  "summary": "Completed comprehensive testing of Stage C Token Runner and Ranking v2 Engine integration. All 14 new Token Runner API tests passed. All 18 existing tests continue to pass. Total: 32/32 tests passing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_token_runner.py",
+    "/app/tests/test_blockchain_analyzer.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All Engine labels are NEUTRAL (score=50) because there are no actor signals data - this is expected behavior per main agent context",
+    "Engine confidence capped at ±15 points is correctly implemented in ranking.service.ts",
+    "Ranking formula v2 weights verified: marketCap(0.25) + volume(0.20) + momentum(0.20) + engineConfidence(0.35)"
+  ],
+  "updated_files": [
+    "/app/tests/test_token_runner.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A - backend only testing"
+  },
+  "test_credentials": "N/A - No authentication required",
+  "seed_data_creation": "Token Runner has analyzed 25 tokens. All have NEUTRAL label due to no actor signals data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Stage C Token Runner fully tested. 25 tokens analyzed with NEUTRAL labels (expected - no actor signals). Ranking v2 now uses engineConfidence from TokenAnalysis. Buckets: BUY=1, WATCH=23, SELL=17. withEngineData=25, withoutEngineData=16. All APIs working correctly.",
+  "features_tested": {
+    "token_runner_api": {
+      "POST /api/token-runner/run": "PASS - Batch analysis returns processed/successful/failed counts",
+      "GET /api/token-runner/stats": "PASS - Returns totalAnalyses=25, completed=25, failed=0, byLabel={NEUTRAL:25}",
+      "GET /api/token-runner/analysis/:symbol": "PASS - Returns single token analysis with full details",
+      "GET /api/token-runner/top": "PASS - Returns top tokens sorted by engineScore",
+      "GET /api/token-runner/analyses": "PASS - Pagination and filtering by status/label working"
+    },
+    "ranking_v2_integration": {
+      "POST /api/rankings/compute": "PASS - Returns withEngineData=25, withoutEngineData=16",
+      "GET /api/rankings/buckets": "PASS - Returns withEngineData field, BUY=1/WATCH=23/SELL=17",
+      "GET /api/rankings/dashboard": "PASS - Tokens have engineConfidence field"
+    },
+    "integration_flow": {
+      "Token Runner → Rankings": "PASS - Engine data correctly integrated into ranking computation"
+    }
+  },
+  "data_verification": {
+    "total_analyses": 25,
+    "completed": 25,
+    "failed": 0,
+    "all_labels_neutral": true,
+    "engine_score_range": "All tokens have engineScore=50 (NEUTRAL)",
+    "confidence_range": "All tokens have confidence=50",
+    "risk_range": "All tokens have risk=35",
+    "buckets_after_engine": {
+      "BUY": 1,
+      "WATCH": 23,
+      "SELL": 17
+    }
+  }
+}
