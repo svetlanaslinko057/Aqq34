@@ -66,10 +66,9 @@ export async function engineBootstrapRoutes(app: FastifyInstance): Promise<void>
         let created = 0;
         
         // Select tokens for this regime
-        const selectedTokens = tokens.slice(0, Math.min(tokensPerRegime, tokens.length));
+        const selectedTokens = knownTokens.slice(0, Math.min(tokensPerRegime, knownTokens.length));
         
         for (const token of selectedTokens) {
-          const t = token as any;
           
           // Create context based on regime
           const contextData: any = {
