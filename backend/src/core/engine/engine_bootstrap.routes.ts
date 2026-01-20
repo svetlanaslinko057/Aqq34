@@ -13,7 +13,7 @@ import { EngineDecisionModel } from './engine_decision.model.js';
 import { SignalContextModel } from '../signals/signal_context.model.js';
 import { ActorSignalModel } from '../signals/actor_signal.model.js';
 import { EntityModel } from '../entities/entities.model.js';
-import { TokenModel } from '../tokens/tokens.model.js';
+import { TokenRegistry } from '../resolver/token_registry.model.js';
 
 export async function engineBootstrapRoutes(app: FastifyInstance): Promise<void> {
   
