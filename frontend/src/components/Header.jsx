@@ -126,6 +126,26 @@ export default function Header() {
               {/* Alerts - NotificationBell with dropdown */}
               <NotificationBell />
 
+              {/* Settings Icon */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link 
+                    to="/settings"
+                    className={`p-2.5 rounded-full transition-colors ${
+                      isActive('/settings') 
+                        ? 'text-gray-900 bg-gray-100' 
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                    data-testid="header-settings-link"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-900 text-white">
+                  <p className="text-xs">Settings</p>
+                </TooltipContent>
+              </Tooltip>
+
               {/* Connect Wallet Button - BLACK (original) */}
               <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-gray-900/20 hover:shadow-xl hover:shadow-gray-900/30 hover:scale-105 active:scale-95">
                 <Wallet className="w-4 h-4" />
