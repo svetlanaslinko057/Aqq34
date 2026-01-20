@@ -249,7 +249,7 @@ P3 станет доступен **автоматически**, когда:
 ```
 ✅ Live snapshots ≥ 300
 ✅ Coverage variance > 0
-✅ Decision diversity ≥ 2 (есть BUY или SELL)
+✅ Decision diversity ≥ 2 (distinct coverage buckets)
 ✅ Delayed labels ≥ 30%
 ✅ ML targets v1.1 ≥ 20%
 ```
