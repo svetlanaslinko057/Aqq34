@@ -76,17 +76,17 @@ export function MLToggle() {
   if (!config) {
     return (
       <div className="ml-toggle">
-        <div className="text-sm text-gray-400">Loading ML config...</div>
+        <div className="text-sm text-gray-500">Loading ML config...</div>
       </div>
     );
   }
   
   const getModeColor = () => {
-    if (config.killSwitchActive) return 'text-red-500';
-    if (!config.mlEnabled || config.mlMode === 'off') return 'text-gray-400';
-    if (config.mlMode === 'advisor') return 'text-blue-500';
-    if (config.mlMode === 'assist') return 'text-green-500';
-    return 'text-gray-400';
+    if (config.killSwitchActive) return 'text-red-600';
+    if (!config.mlEnabled || config.mlMode === 'off') return 'text-gray-500';
+    if (config.mlMode === 'advisor') return 'text-blue-600';
+    if (config.mlMode === 'assist') return 'text-green-600';
+    return 'text-gray-500';
   };
   
   const getModeLabel = () => {
@@ -98,11 +98,11 @@ export function MLToggle() {
   };
   
   return (
-    <div className="ml-toggle p-4 bg-slate-800 rounded-lg border border-slate-700">
+    <div className="ml-toggle p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <label className="text-sm font-semibold text-white">ML Advisor</label>
+        <label className="text-sm font-semibold text-gray-900">ML Advisor</label>
         {config.killSwitchActive && (
-          <span className="text-xs px-2 py-1 bg-red-900 text-red-200 rounded">
+          <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
             Kill Switch Active
           </span>
         )}
@@ -112,7 +112,7 @@ export function MLToggle() {
         value={config.mlMode || 'off'}
         onChange={handleModeChange}
         disabled={loading || config.killSwitchActive}
-        className={`w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm ${getModeColor()} ${
+        className={`w-full px-3 py-2 bg-white border border-gray-300 rounded text-sm ${getModeColor()} ${
           loading || config.killSwitchActive ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
         }`}
       >
@@ -121,12 +121,12 @@ export function MLToggle() {
         <option value="assist">ASSIST - Ranking within bucket</option>
       </select>
       
-      <div className="mt-3 text-xs text-gray-400">
+      <div className="mt-3 text-xs text-gray-600">
         <div className={`font-medium ${getModeColor()}`}>
           {getModeLabel()}
         </div>
         {config.disableReason && (
-          <div className="mt-1 text-yellow-400">
+          <div className="mt-1 text-yellow-700">
             Reason: {config.disableReason}
           </div>
         )}
@@ -138,19 +138,19 @@ export function MLToggle() {
       </div>
       
       {error && (
-        <div className="mt-3 text-xs text-red-400 bg-red-900/20 p-2 rounded">
+        <div className="mt-3 text-xs text-red-600 bg-red-50 p-2 rounded">
           {error}
         </div>
       )}
       
-      <div className="mt-3 pt-3 border-t border-slate-700 text-xs text-gray-500">
+      <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-600">
         <div className="font-medium mb-1">About ML Advisor:</div>
         <ul className="list-disc list-inside space-y-1">
           <li><strong>OFF:</strong> ML runs in shadow but has no influence</li>
           <li><strong>ADVISOR:</strong> ML influences confidence and risk scores (±10)</li>
           <li><strong>ASSIST:</strong> ML influences token ranking within same bucket (±10)</li>
         </ul>
-        <div className="mt-2 font-medium">
+        <div className="mt-2 font-medium text-orange-600">
           ⚠️ ML never changes BUY → SELL or bypasses gates
         </div>
       </div>
