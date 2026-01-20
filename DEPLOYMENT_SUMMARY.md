@@ -90,7 +90,7 @@
 
 ### Production URL
 ```
-https://crypto-analyzer-38.preview.emergentagent.com
+https://crypto-analyzer-39.preview.emergentagent.com
 ```
 
 ### Internal URLs (development)
