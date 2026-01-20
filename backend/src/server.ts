@@ -8,6 +8,7 @@ import { startHealthMonitor, stopHealthMonitor } from './core/system/health.moni
 import * as bootstrapWorker from './core/bootstrap/bootstrap.worker.js';
 import { startTelegramPolling, stopTelegramPolling } from './telegram-polling.worker.js';
 import { seedTokenRegistry } from './core/resolver/token.resolver.js';
+import { ensureDefaultConfig } from './core/engine/engine_runtime_config.model.js';
 
 async function main(): Promise<void> {
   console.log('[Server] Starting BlockView Backend...');
