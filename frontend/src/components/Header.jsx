@@ -168,7 +168,8 @@ export default function Header() {
               <div className="grid grid-cols-2 gap-2">
                 {[...navItems, 
                   { path: '/watchlist', label: 'Watchlist', icon: Eye },
-                  { path: '/alerts', label: 'Alerts', icon: Bell }
+                  { path: '/alerts', label: 'Alerts', icon: Bell },
+                  { path: '/settings', label: 'Settings', icon: Settings }
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
