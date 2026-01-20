@@ -271,9 +271,9 @@ export async function engineBootstrapRoutes(app: FastifyInstance): Promise<void>
           { 
             $group: { 
               _id: null, 
-              minCoverage: { $min: '$input.coverage.overall' },
-              maxCoverage: { $max: '$input.coverage.overall' },
-              avgCoverage: { $avg: '$input.coverage.overall' },
+              minCoverage: { $min: '$coverage.overall' },
+              maxCoverage: { $max: '$coverage.overall' },
+              avgCoverage: { $avg: '$coverage.overall' },
             } 
           },
         ]),
