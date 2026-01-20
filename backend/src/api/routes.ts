@@ -108,6 +108,9 @@ import { tokenUniverseRoutes } from '../core/token_universe/token_universe.route
 // Ranking & Buckets (Stage D)
 import { rankingRoutes } from '../core/ranking/ranking.routes.js';
 
+// Token Runner (Stage C)
+import { tokenRunnerRoutes } from '../core/token_runner/token_runner.routes.js';
+
 // P2.5 - Token Symbol Resolution
 import { tokenRegistryRoutes } from '../core/resolver/token_registry.routes.js';
 
