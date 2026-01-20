@@ -154,11 +154,21 @@
   - Enforce `mlMode` (off/shadow/advisor)
   - Respect Kill Switch
 
+**Safety:**
+- ✅ Kill Switch имеет абсолютный приоритет
+- ✅ Default: OFF
+- ✅ Config персистится в DB
+- ✅ Operator всегда может выключить
+
+**Priority order:**
+1. Kill Switch (system) - абсолютный приоритет
+2. Runtime Config (operator) - может управлять
+3. Default (off) - безопасное начальное состояние
+
+📌 **Важно:** UI toggle **не может override Kill Switch**.
+
 **DoD:**
 - ✅ ML можно включить/выключить через API
-- ✅ Kill Switch имеет абсолютный приоритет
-- ✅ Default: `mlEnabled = false`
-- ✅ Config персистится в DB
 
 **Status:** ⚠️ TODO (critical for production control)
 
