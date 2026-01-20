@@ -1,23 +1,28 @@
 /**
- * Token Ranking Service (Stage D)
+ * Token Ranking Service v2 (Stage C + D Integration)
  * 
- * Rules-based ranking engine
+ * Rules-based ranking engine with Engine confidence integration
  * Sorts tokens into BUY / WATCH / SELL buckets
  * 
- * Scoring formula:
- *   compositeScore = w1*marketCapScore + w2*volumeScore + w3*momentumScore + w4*engineConfidence
+ * Scoring formula (v2):
+ *   compositeScore = 
+ *     marketCapScore * 0.25 +
+ *     volumeScore * 0.20 +
+ *     momentumScore * 0.20 +
+ *     engineConfidence * 0.35  ← Main contribution
+ * 
+ * Safety constraints:
+ *   - engineConfidence capped at ±15 points impact
+ *   - Engine alone cannot move SELL → BUY
  * 
  * Bucket thresholds:
  *   BUY:   score >= 70
  *   WATCH: 40 <= score < 70
  *   SELL:  score < 40
- * 
- * ML Influence (when enabled):
- *   - ADVISOR mode: ±10 to confidence/risk
- *   - ASSIST mode: ±10 to bucket rank (never changes bucket)
  */
 import { TokenUniverseModel } from '../token_universe/token_universe.model.js';
 import { TokenRankingModel, BucketType } from './ranking.model.js';
+import { TokenAnalysisModel } from '../token_runner/token_analysis.model.js';
 
 // ============================================================
 // CONFIGURATION
@@ -34,25 +39,30 @@ interface RankingConfig {
   
   // Bucket thresholds
   thresholds: {
-    buy: number;    // >= this → BUY
-    watch: number;  // >= this → WATCH, else SELL
+    buy: number;
+    watch: number;
   };
+  
+  // Safety caps
+  engineConfidenceCap: number;  // Max ±points from engine
   
   // Limits
   maxTokensPerBucket: number;
 }
 
+// V2 Config: Engine has more weight but capped
 const DEFAULT_CONFIG: RankingConfig = {
   weights: {
-    marketCap: 0.30,
-    volume: 0.25,
-    momentum: 0.25,
-    engineConfidence: 0.20,
+    marketCap: 0.25,
+    volume: 0.20,
+    momentum: 0.20,
+    engineConfidence: 0.35,  // Main contribution
   },
   thresholds: {
     buy: 70,
     watch: 40,
   },
+  engineConfidenceCap: 15,  // Max ±15 points
   maxTokensPerBucket: 50,
 };
 
@@ -67,16 +77,18 @@ export interface RankingResult {
     WATCH: number;
     SELL: number;
   };
+  withEngineData: number;
+  withoutEngineData: number;
   duration_ms: number;
 }
 
 /**
- * Compute rankings for all active tokens
+ * Compute rankings for all active tokens (v2 with Engine integration)
  */
 export async function computeTokenRankings(
   config: RankingConfig = DEFAULT_CONFIG
 ): Promise<RankingResult> {
-  console.log('[Ranking] Starting token ranking computation...');
+  console.log('[Ranking v2] Starting token ranking computation...');
   const startTime = Date.now();
   
   try {
@@ -85,17 +97,31 @@ export async function computeTokenRankings(
       .select('symbol name contractAddress chainId marketCap volume24h priceUsd priceChange24h imageUrl')
       .lean();
     
-    console.log(`[Ranking] Processing ${tokens.length} active tokens`);
+    console.log(`[Ranking v2] Processing ${tokens.length} active tokens`);
     
     if (tokens.length === 0) {
       return {
         computed: 0,
         buckets: { BUY: 0, WATCH: 0, SELL: 0 },
+        withEngineData: 0,
+        withoutEngineData: 0,
         duration_ms: Date.now() - startTime,
       };
     }
     
-    // 2. Calculate normalization bounds
+    // 2. Fetch Engine analyses for these tokens
+    const analyses = await TokenAnalysisModel.find({
+      contractAddress: { $in: tokens.map(t => t.contractAddress.toLowerCase()) },
+      status: 'completed',
+    }).lean();
+    
+    const analysisMap = new Map(
+      analyses.map(a => [a.contractAddress.toLowerCase(), a])
+    );
+    
+    console.log(`[Ranking v2] Found ${analyses.length} Engine analyses`);
+    
+    // 3. Calculate normalization bounds
     const marketCaps = tokens.map(t => t.marketCap || 0);
     const volumes = tokens.map(t => t.volume24h || 0);
     const priceChanges = tokens.map(t => t.priceChange24h || 0);
@@ -106,24 +132,37 @@ export async function computeTokenRankings(
       priceChange: { min: Math.min(...priceChanges), max: Math.max(...priceChanges) },
     };
     
-    // 3. Compute scores for each token
+    // 4. Compute scores for each token
+    let withEngineData = 0;
+    let withoutEngineData = 0;
+    
     const scoredTokens = tokens.map(token => {
-      const scores = computeTokenScores(token, bounds);
+      // Get Engine analysis if available
+      const analysis = analysisMap.get(token.contractAddress.toLowerCase());
+      
+      if (analysis) {
+        withEngineData++;
+      } else {
+        withoutEngineData++;
+      }
+      
+      const scores = computeTokenScores(token, bounds, analysis, config);
       const compositeScore = computeCompositeScore(scores, config.weights);
-      const bucket = determineBucket(compositeScore, config.thresholds);
+      const bucket = determineBucket(compositeScore, config.thresholds, analysis);
       
       return {
         ...token,
         ...scores,
         compositeScore,
         bucket,
+        hasEngineData: !!analysis,
       };
     });
     
-    // 4. Sort by composite score (descending)
+    // 5. Sort by composite score (descending)
     scoredTokens.sort((a, b) => b.compositeScore - a.compositeScore);
     
-    // 5. Assign global and bucket ranks
+    // 6. Assign global and bucket ranks
     const bucketCounters = { BUY: 0, WATCH: 0, SELL: 0 };
     
     const rankedTokens = scoredTokens.map((token, idx) => {
@@ -137,8 +176,8 @@ export async function computeTokenRankings(
         marketCapScore: token.marketCapScore,
         volumeScore: token.volumeScore,
         momentumScore: token.momentumScore,
-        engineConfidence: 50, // Default - will be updated by Token Runner
-        engineRisk: 50,
+        engineConfidence: token.engineConfidence,
+        engineRisk: token.engineRisk || 50,
         mlAdjustment: 0,
         compositeScore: token.compositeScore,
         bucket: token.bucket,
@@ -150,11 +189,11 @@ export async function computeTokenRankings(
         volume24h: token.volume24h || 0,
         imageUrl: token.imageUrl,
         computedAt: new Date(),
-        source: 'rules',
+        source: token.hasEngineData ? 'rules_with_engine' : 'rules',
       };
     });
     
-    // 6. Upsert all rankings
+    // 7. Upsert all rankings
     const bulkOps = rankedTokens.map(token => ({
       updateOne: {
         filter: { 
@@ -171,16 +210,19 @@ export async function computeTokenRankings(
     }
     
     const duration = Date.now() - startTime;
-    console.log(`[Ranking] Computed ${rankedTokens.length} rankings in ${duration}ms`);
-    console.log(`[Ranking] Buckets: BUY=${bucketCounters.BUY}, WATCH=${bucketCounters.WATCH}, SELL=${bucketCounters.SELL}`);
+    console.log(`[Ranking v2] Computed ${rankedTokens.length} rankings in ${duration}ms`);
+    console.log(`[Ranking v2] With Engine: ${withEngineData}, Without: ${withoutEngineData}`);
+    console.log(`[Ranking v2] Buckets: BUY=${bucketCounters.BUY}, WATCH=${bucketCounters.WATCH}, SELL=${bucketCounters.SELL}`);
     
     return {
       computed: rankedTokens.length,
       buckets: bucketCounters,
+      withEngineData,
+      withoutEngineData,
       duration_ms: duration,
     };
   } catch (err: any) {
-    console.error('[Ranking] Computation failed:', err);
+    console.error('[Ranking v2] Computation failed:', err);
     throw err;
   }
 }
@@ -193,6 +235,8 @@ interface TokenScores {
   marketCapScore: number;
   volumeScore: number;
   momentumScore: number;
+  engineConfidence: number;
+  engineRisk?: number;
 }
 
 interface Bounds {
@@ -204,7 +248,12 @@ interface Bounds {
 /**
  * Compute individual scores for a token
  */
-function computeTokenScores(token: any, bounds: Bounds): TokenScores {
+function computeTokenScores(
+  token: any, 
+  bounds: Bounds, 
+  analysis: any | null,
+  config: RankingConfig
+): TokenScores {
   // Market Cap Score (log scale normalization)
   const marketCapScore = normalizeLogScale(
     token.marketCap || 0,
@@ -220,17 +269,35 @@ function computeTokenScores(token: any, bounds: Bounds): TokenScores {
   );
   
   // Momentum Score (price change based)
-  // Positive change = higher score, negative = lower
   const momentumScore = normalizeMomentum(
     token.priceChange24h || 0,
     bounds.priceChange.min,
     bounds.priceChange.max
   );
   
+  // Engine Confidence (from TokenAnalysis or default)
+  let engineConfidence = 50; // Default neutral
+  let engineRisk = 50;
+  
+  if (analysis) {
+    // Use Engine analysis with capped contribution
+    const rawConfidence = analysis.confidence || 50;
+    
+    // Cap the deviation from neutral (50)
+    const deviation = rawConfidence - 50;
+    const cappedDeviation = Math.max(-config.engineConfidenceCap, 
+                                     Math.min(config.engineConfidenceCap, deviation));
+    
+    engineConfidence = 50 + cappedDeviation;
+    engineRisk = analysis.risk || 50;
+  }
+  
   return {
     marketCapScore: Math.round(marketCapScore * 100) / 100,
     volumeScore: Math.round(volumeScore * 100) / 100,
     momentumScore: Math.round(momentumScore * 100) / 100,
+    engineConfidence: Math.round(engineConfidence * 100) / 100,
+    engineRisk,
   };
 }
 
@@ -252,15 +319,10 @@ function normalizeLogScale(value: number, min: number, max: number): number {
 
 /**
  * Normalize momentum (price change)
- * Maps [-100%, +100%] to [0, 100] score
  */
 function normalizeMomentum(priceChange: number, min: number, max: number): number {
-  // Clamp extreme values
   const clampedChange = Math.max(-50, Math.min(50, priceChange));
-  
-  // Map from [-50, 50] to [0, 100]
   const normalized = ((clampedChange + 50) / 100) * 100;
-  
   return Math.max(0, Math.min(100, normalized));
 }
 
@@ -275,21 +337,43 @@ function computeCompositeScore(
     scores.marketCapScore * weights.marketCap +
     scores.volumeScore * weights.volume +
     scores.momentumScore * weights.momentum +
-    50 * weights.engineConfidence; // Default engine confidence
+    scores.engineConfidence * weights.engineConfidence;
   
   return Math.round(composite * 100) / 100;
 }
 
 /**
  * Determine bucket based on composite score
+ * Safety: Engine alone cannot move SELL → BUY
  */
 function determineBucket(
   score: number,
-  thresholds: RankingConfig['thresholds']
+  thresholds: RankingConfig['thresholds'],
+  analysis: any | null
 ): BucketType {
-  if (score >= thresholds.buy) return 'BUY';
-  if (score >= thresholds.watch) return 'WATCH';
-  return 'SELL';
+  // Base bucket from score
+  let bucket: BucketType;
+  
+  if (score >= thresholds.buy) {
+    bucket = 'BUY';
+  } else if (score >= thresholds.watch) {
+    bucket = 'WATCH';
+  } else {
+    bucket = 'SELL';
+  }
+  
+  // Safety check: If Engine alone is pushing to BUY but base metrics are weak
+  // This prevents engine from dominating
+  if (bucket === 'BUY' && analysis) {
+    // Check if base score (without engine) would be SELL
+    const baseScore = score - (analysis.confidence - 50) * 0.35;
+    if (baseScore < thresholds.watch) {
+      // Downgrade to WATCH - engine can't push SELL to BUY
+      bucket = 'WATCH';
+    }
+  }
+  
+  return bucket;
 }
 
 // ============================================================
@@ -303,7 +387,7 @@ export async function getRankingsByBucket(bucket: BucketType, limit = 50) {
   const rankings = await TokenRankingModel.find({ bucket })
     .sort({ bucketRank: 1 })
     .limit(limit)
-    .select('-_id symbol name contractAddress chainId compositeScore bucketRank globalRank priceUsd priceChange24h marketCap volume24h imageUrl computedAt')
+    .select('-_id symbol name contractAddress chainId compositeScore bucketRank globalRank priceUsd priceChange24h marketCap volume24h imageUrl engineConfidence computedAt source')
     .lean();
   
   return rankings;
@@ -313,11 +397,12 @@ export async function getRankingsByBucket(bucket: BucketType, limit = 50) {
  * Get all buckets summary
  */
 export async function getBucketsSummary() {
-  const [buy, watch, sell, lastComputed] = await Promise.all([
+  const [buy, watch, sell, lastComputed, withEngine] = await Promise.all([
     TokenRankingModel.countDocuments({ bucket: 'BUY' }),
     TokenRankingModel.countDocuments({ bucket: 'WATCH' }),
     TokenRankingModel.countDocuments({ bucket: 'SELL' }),
     TokenRankingModel.findOne().sort({ computedAt: -1 }).select('computedAt').lean(),
+    TokenRankingModel.countDocuments({ source: 'rules_with_engine' }),
   ]);
   
   return {
@@ -325,6 +410,7 @@ export async function getBucketsSummary() {
     WATCH: watch,
     SELL: sell,
     total: buy + watch + sell,
+    withEngineData: withEngine,
     lastComputed: lastComputed?.computedAt,
   };
 }
