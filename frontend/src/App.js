@@ -64,6 +64,7 @@ function App() {
             <Route path="/engine" element={<EnginePage />} />
             <Route path="/engine/dashboard" element={<EngineDashboard />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/rankings" element={<RankingsDashboard />} />
             
             {/* Detail Pages */}
             <Route path="/token/:tokenId" element={<TokenDetail />} />
