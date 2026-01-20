@@ -102,6 +102,9 @@ import { engineRoutes } from '../core/engine/engine.routes.js';
 import { engineBootstrapRoutes } from '../core/engine/engine_bootstrap.routes.js';
 import { engineRuntimeRoutes } from '../core/engine/engine_runtime.routes.js';
 
+// Token Universe (Stage B)
+import { tokenUniverseRoutes } from '../core/token_universe/token_universe.routes.js';
+
 // P2.5 - Token Symbol Resolution
 import { tokenRegistryRoutes } from '../core/resolver/token_registry.routes.js';
 
