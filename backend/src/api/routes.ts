@@ -311,6 +311,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   
   // Ranking & Buckets (Stage D)
   await app.register(rankingRoutes, { prefix: '/api' });
+  
+  // Token Runner (Stage C - Engine Analysis)
+  await app.register(tokenRunnerRoutes, { prefix: '/api' });
 
   // ========== P2.5 - TOKEN SYMBOL RESOLUTION ==========
   
