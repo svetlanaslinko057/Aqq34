@@ -299,6 +299,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   
   // Engine Runtime Config (ML Control)
   await app.register(engineRuntimeRoutes, { prefix: '/api' });
+  
+  // Token Universe (Stage B - Foundation for Final UX)
+  await app.register(tokenUniverseRoutes, { prefix: '/api' });
 
   // ========== P2.5 - TOKEN SYMBOL RESOLUTION ==========
   
