@@ -9,6 +9,7 @@ import {
   ingestTokenUniverse,
   getTokenUniverseStats,
 } from './token_universe.service.js';
+import { seedTokenUniverse } from './token_universe.seed.js';
 
 export async function tokenUniverseRoutes(app: FastifyInstance): Promise<void> {
   
