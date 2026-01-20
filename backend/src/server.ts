@@ -32,6 +32,15 @@ async function main(): Promise<void> {
   // БЛОК 1: Ensure ML Runtime Config exists (default: OFF)
   console.log('[Server] Initializing ML Runtime Config...');
   await ensureDefaultConfig();
+  
+  // БЛОК 2: Seed Token Universe if empty
+  const tokenCount = await TokenUniverseModel.countDocuments();
+  if (tokenCount === 0) {
+    console.log('[Server] Seeding Token Universe...');
+    await seedTokenUniverse();
+  } else {
+    console.log(`[Server] Token Universe already has ${tokenCount} tokens`);
+  }
 
   // Register scheduled jobs (including ERC-20 indexer)
   registerDefaultJobs();
