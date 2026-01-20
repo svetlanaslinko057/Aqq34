@@ -43,14 +43,22 @@ export async function engineBootstrapRoutes(app: FastifyInstance): Promise<void>
         totalCreated: 0,
       };
       
-      // Get some entities and tokens for bootstrap
+      // Get some entities for bootstrap
       const entities = await EntityModel.find({}).limit(10).lean();
-      const tokens = await TokenRegistryModel.find({}).limit(20).lean();
       
-      if (tokens.length === 0) {
+      // Hardcoded token addresses for bootstrap (real Ethereum tokens)
+      const knownTokens = [
+        { address: '0xdac17f958d2ee523a2206206994597c13d831ec7', symbol: 'USDT', tokenId: 'usdt' },
+        { address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', symbol: 'USDC', tokenId: 'usdc' },
+        { address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', symbol: 'WETH', tokenId: 'weth' },
+        { address: '0x6b175474e89094c44da98b954eedeac495271d0f', symbol: 'DAI', tokenId: 'dai' },
+        { address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', symbol: 'WBTC', tokenId: 'wbtc' },
+      ];
+      
+      if (entities.length === 0) {
         return {
           ok: false,
-          error: 'No tokens found. Please run indexer first.',
+          error: 'No entities found. Please run seed first.',
         };
       }
       
