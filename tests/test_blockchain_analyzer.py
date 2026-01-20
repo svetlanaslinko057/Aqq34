@@ -214,9 +214,9 @@ class TestRankingsAPI:
         assert "data" in data
         
         result = data["data"]
-        assert "processed" in result
+        assert "computed" in result
         assert "buckets" in result
-        print(f"✓ Rankings computed: {result['processed']} tokens processed")
+        print(f"✓ Rankings computed: {result['computed']} tokens processed")
 
 
 class TestMLRuntimeAPI:
