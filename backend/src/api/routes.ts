@@ -289,6 +289,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   
   // Decision Engine (Sprint 4)
   await app.register(engineRoutes, { prefix: '/api' });
+  
+  // Engine Bootstrap Routes (P3 Unblocking)
+  await app.register(engineBootstrapRoutes, { prefix: '/api' });
 
   // ========== P2.5 - TOKEN SYMBOL RESOLUTION ==========
   
