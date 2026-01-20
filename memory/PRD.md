@@ -52,12 +52,21 @@ Deploy a blockchain analysis application from GitHub with API keys for Infura, A
 - Sync Tokens and Compute Rankings buttons
 - Rankings link in header navigation
 
-### In Progress 🚧
+### Completed ✅ (continued)
 
 #### Stage C: Token Runner
-- Background job to iterate through TokenUniverse
-- Run each token through DecisionEngine
-- Store engineScore, confidence, risk
+- Manual API trigger: `POST /api/token-runner/run`
+- FAST mode: ~7ms per token (25 tokens in 178ms)
+- Stores engineScore, confidence, risk, engineLabel
+- Ranking v2: engineConfidence integrated with 0.35 weight
+- Safety: engineConfidence capped at ±15 points
+- Safety: Engine alone cannot move SELL → BUY
+- APIs:
+  - `POST /api/token-runner/run` - Batch analysis
+  - `GET /api/token-runner/stats` - Statistics
+  - `GET /api/token-runner/analysis/:symbol` - Single token
+  - `GET /api/token-runner/top` - Top by engine score
+  - `GET /api/token-runner/analyses` - Paginated list
 
 ### Planned 📋
 
@@ -105,9 +114,14 @@ Deploy a blockchain analysis application from GitHub with API keys for Infura, A
 ```
 
 ## Test Results
-- **Backend**: 18/18 tests passing (100%)
+- **Backend**: 32/32 tests passing (100%)
 - **Frontend**: All pages verified (100%)
-- See `/app/test_reports/iteration_1.json` for details
+- See `/app/test_reports/iteration_2.json` for latest results
+
+### In Progress 🚧
+
+#### Cron Job for Token Runner
+- Auto-run every 15 minutes (after stabilization)
 
 ## Files Reference
 - `/app/backend/src/core/token_universe/` - Token Universe module
@@ -117,5 +131,13 @@ Deploy a blockchain analysis application from GitHub with API keys for Infura, A
 - `/app/frontend/src/pages/SettingsPage.jsx` - ML Toggle page
 - `/app/frontend/src/components/Header.jsx` - Navigation
 
+## Files Reference (Updated)
+- `/app/backend/src/core/token_runner/` - Stage C Token Runner module
+- `/app/backend/src/core/token_universe/` - Stage B Token Universe
+- `/app/backend/src/core/ranking/` - Stage D Ranking v2 with Engine integration
+- `/app/backend/src/core/engine/engine_runtime.routes.ts` - P0 ML runtime
+- `/app/frontend/src/pages/RankingsDashboard.jsx` - Stage E Dashboard UI
+- `/app/frontend/src/pages/SettingsPage.jsx` - P0 ML Toggle page
+
 ## Last Updated
-2026-01-20 - Completed Stage B, D, E and P0 with full testing
+2026-01-20 - Completed Stages B, C, D, E and P0 with full testing (32/32 tests)
