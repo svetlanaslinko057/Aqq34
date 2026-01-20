@@ -2,7 +2,7 @@
  * Token Universe Model
  * 
  * Registry of all tokens for analysis
- * Source: CoinGecko API
+ * Extended for Ranking & Decision Engine
  */
 import mongoose from 'mongoose';
 
@@ -37,7 +37,7 @@ const TokenUniverseSchema = new mongoose.Schema({
     default: 18,
   },
   
-  // Market Data
+  // Market Data (extended for Ranking)
   marketCap: {
     type: Number,
     required: true,
@@ -50,12 +50,29 @@ const TokenUniverseSchema = new mongoose.Schema({
   
   liquidity: {
     type: Number,
-    required: false,
+    default: 0,
   },
   
   priceUsd: {
     type: Number,
     required: true,
+  },
+  
+  // Price Changes (for Ranking logic)
+  priceChange24h: {
+    type: Number,
+    default: 0,
+  },
+  
+  priceChange7d: {
+    type: Number,
+    default: 0,
+  },
+  
+  // Rankings (from CoinGecko)
+  marketCapRank: {
+    type: Number,
+    default: null,
   },
   
   // Metadata
@@ -70,6 +87,13 @@ const TokenUniverseSchema = new mongoose.Schema({
   },
   
   coingeckoId: {
+    type: String,
+    required: false,
+    index: true,
+  },
+  
+  // Image URL
+  imageUrl: {
     type: String,
     required: false,
   },
@@ -87,10 +111,15 @@ const TokenUniverseSchema = new mongoose.Schema({
     index: true,
   },
   
-  // Source
+  lastSyncedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  
+  // Source tracking
   source: {
     type: String,
-    enum: ['coingecko', 'cmc'],
+    enum: ['coingecko', 'dexscreener', 'cmc', 'seed'],
     default: 'coingecko',
   },
   
@@ -104,9 +133,10 @@ const TokenUniverseSchema = new mongoose.Schema({
 });
 
 // Indexes
-TokenUniverseSchema.index({ symbol: 1 }, { unique: true });
+TokenUniverseSchema.index({ symbol: 1 });
 TokenUniverseSchema.index({ contractAddress: 1, chainId: 1 }, { unique: true });
 TokenUniverseSchema.index({ active: 1, marketCap: -1 });
 TokenUniverseSchema.index({ lastUpdated: 1 });
+TokenUniverseSchema.index({ marketCapRank: 1 });
 
 export const TokenUniverseModel = mongoose.model('TokenUniverse', TokenUniverseSchema);
