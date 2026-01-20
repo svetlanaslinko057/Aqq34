@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart3, Coins, Wallet, Building, Bell, Zap, 
-  Search, Menu, X, Eye, Users
+  Search, Menu, X, Eye, Users, Settings
 } from 'lucide-react';
 import { useState } from 'react';
 import {
