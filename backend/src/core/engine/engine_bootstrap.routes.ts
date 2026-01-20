@@ -45,7 +45,7 @@ export async function engineBootstrapRoutes(app: FastifyInstance): Promise<void>
       
       // Get some entities and tokens for bootstrap
       const entities = await EntityModel.find({}).limit(10).lean();
-      const tokens = await TokenModel.find({}).limit(20).lean();
+      const tokens = await TokenRegistry.find({}).limit(20).lean();
       
       if (tokens.length === 0) {
         return {
