@@ -132,5 +132,28 @@ export async function tokenUniverseRoutes(app: FastifyInstance): Promise<void> {
     }
   });
   
+  /**
+   * POST /api/tokens/seed
+   * Seed token universe with known top tokens
+   */
+  app.post('/tokens/seed', async () => {
+    try {
+      const count = await seedTokenUniverse();
+      
+      return {
+        ok: true,
+        data: {
+          seeded: count,
+        },
+      };
+    } catch (err: any) {
+      return {
+        ok: false,
+        error: 'Token seed failed',
+        details: err.message,
+      };
+    }
+  });
+  
   app.log.info('[Token Universe] Routes registered');
 }
