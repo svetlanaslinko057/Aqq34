@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart3, Coins, Wallet, Building, Bell, Zap, 
-  Search, Menu, X, Eye, Users, Settings
+  Search, Menu, X, Eye, Users, Settings, TrendingUp
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -25,6 +25,7 @@ const navItems = [
   { path: '/actors', label: 'Actors', icon: Users },
   { path: '/signals', label: 'Signals', icon: Zap },
   { path: '/engine', label: 'Engine', icon: Brain },
+  { path: '/rankings', label: 'Rankings', icon: TrendingUp },
 ];
 
 export default function Header() {
