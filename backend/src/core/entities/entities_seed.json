@@ -191,7 +191,7 @@
     "slug": "whale-1",
     "logo": "https://via.placeholder.com/48/3b82f6/ffffff?text=W1",
     "description": "High-volume trader with significant ETH and token holdings",
-    "category": "whale",
+    "category": "unknown",
     "tags": ["whale", "trader", "high_volume"],
     "primaryAddresses": [
       "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
