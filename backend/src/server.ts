@@ -26,6 +26,10 @@ async function main(): Promise<void> {
   // P2.5: Seed token registry with known tokens
   console.log('[Server] Seeding token registry...');
   await seedTokenRegistry();
+  
+  // БЛОК 1: Ensure ML Runtime Config exists (default: OFF)
+  console.log('[Server] Initializing ML Runtime Config...');
+  await ensureDefaultConfig();
 
   // Register scheduled jobs (including ERC-20 indexer)
   registerDefaultJobs();
