@@ -100,6 +100,7 @@ import { signalContextRoutes } from '../core/signals/signal_context.routes.js';
 // Sprint 4 - Engine v1 (Decision Layer)
 import { engineRoutes } from '../core/engine/engine.routes.js';
 import { engineBootstrapRoutes } from '../core/engine/engine_bootstrap.routes.js';
+import { engineRuntimeRoutes } from '../core/engine/engine_runtime.routes.js';
 
 // P2.5 - Token Symbol Resolution
 import { tokenRegistryRoutes } from '../core/resolver/token_registry.routes.js';
